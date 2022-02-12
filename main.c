@@ -1,70 +1,82 @@
 #include <stdio.h>
 #include "platform.h"
 #include "xil_printf.h"
-#include <stdbool.h>
-#include "led.h"
-#include "gic.h"
-#include "io.h"
 #include <unistd.h>
+#include <stdbool.h>
+#include "xuartps.h"
+#include "led.h"
+#include "gic.h"		/* interrupt controller interface */
+#include "io.h"
+#include "xuartps_hw.h"
+#include "wifi.h"
 
-XUartPs uart;
+static bool done = false;
 
-bool done = false;
 
-void btn_callback(u32 led_num){
+
+void getLine (char *str);
+void callback(u32 led_num){
 	led_toggle(led_num);
+	if (led_num == CONFIGURE){
+		printf("[CONFIGURE]\n\r");
+	}
+
+	if (led_num == PING){
+		printf("[PING]\n\r");
+	}
+
+	if (led_num == UPDATE){
+		printf("[UPDATE]\n\r");
+	}
+
+	if (led_num == 3){
+		done = true;
+	}
 }
 
-void sw_callback(u32 led_num){
-	led_toggle(led_num);
-}
-
-void uart_handler(void *CallBackRef, u32 Event, unsigned int EventData){
-
-}
 
 int main()
 {
-
+	/* do some initialization */
 	init_platform();
-	if (gic_init() != 0){
-		// gic didn't initialize
-		return 1;
-	}else{
-		led_init();
-		io_btn_init(btn_callback);
-		io_sw_init(sw_callback);
-		gic_connect(XPAR_UARTPS_1_INTR);
+	led_init();
 
-		XUartPs_Config *config = XUartPs_LookupConfig(XPAR_PS7_UART_1_DEVICE_ID);
-		if (XUartPs_CfgInitialize(&uart, config, config->BaseAddress)!=0){
-			// config didn't initialize
-			return 2;
-		}
-		u32 baudRate = 9600;
-		u8 trigger = 0;
-		XUartPs_SetBaudRate(&uart, baudRate);
-		XUartPs_SetFifoThreshold(&uart, trigger);
-		XUartPs_SetInterruptMask(&uart, XPAR_XUARTPS_1_INTR);
-		XUartPs_SetHandler(&uart, XUartPs_InterruptHandler, );
-
-
+	if (gic_init() == XST_SUCCESS){
+		io_btn_init(callback);
+		io_sw_init(callback);
+		wifi_init();
 	}
 
-	led_set(4, true);
-
-    // do some initialiation here
-	printf("Hello World!\n\r");
-	while(!done)
+	printf("[hello]\n");
+	while (!done){
 		sleep(1);
+	}
 	printf("[done]\n");
 	sleep(1);
-	// do some clean up here
+
 
 	io_btn_close();
 	io_sw_close();
+	wifi_close();
 	gic_close();
-
 	cleanup_platform();
 	return 0;
+}
+
+void getLine(char * str){
+	char c;
+	int i = 0;
+
+	c = getchar();
+	printf("%c", c);
+	fflush(stdout);
+
+	while ( c != 13 ){
+		str[i] = c;
+		i++;
+		c = getchar();
+		printf("%c", c);
+		fflush(stdout);
+	}
+	str[i] = '\0';
 }
