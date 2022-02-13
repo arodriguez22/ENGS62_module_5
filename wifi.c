@@ -16,19 +16,29 @@ static XUartPs uart1;
 static XUartPs uart0;
 
 static int state;
+static u8 long_buffer[30];
+static int buffer_counter;
+
+typedef struct ping{
+	int type; // assigned to ping
+	int id; // assigned to our id on the class roaster
+} ping_t;
 
 
-void set_state(int state){
-	if (state == CONFIGURE){
 
-	}else if (PING){
+void send_ping(){
 
-	}else if(UPDATE){
+	ping_t p;
+	p.type = TYPE;
+	p.id = ID;
 
-	}
+	XUartPs_Send(&uart0, (u8*) &p, sizeof(ping_t));
+	printf("sending\n\r");
 }
 
-
+void set_state(int s){
+	state = s;
+}
 
 
 // uart 0 handler funtion
@@ -37,12 +47,28 @@ static void uart0_handler(void *callBackRef, u32 event, unsigned int eventData){
 		u8 buffer;
 		u32 numBytes_requested = 1;
 
+
+
 		XUartPs *uart0 = (XUartPs*)callBackRef;
 
 		XUartPs_Recv(uart0, &buffer, numBytes_requested);
 
 		if (state == CONFIGURE){
 			XUartPs_Send(&uart1, &buffer, numBytes_requested);
+		}
+
+		if (state == PING){
+			XUartPs_Recv(uart0, &buffer, numBytes_requested);
+			long_buffer[buffer_counter] = buffer;
+			buffer_counter += 1;
+			printf("counter incremented\n\r");
+			if (buffer_counter == 8){
+				XUartPs_Send(&uart1, long_buffer, 8);
+				buffer = (u8) '\n';
+				XUartPs_Send(&uart1, &buffer, numBytes_requested);
+				buffer_counter = 0;
+				printf("printing to terminal\n\r");
+			}
 		}
 
 	}

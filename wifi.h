@@ -16,6 +16,16 @@
 #define PING 1
 #define UPDATE 2
 
+#define TYPE 1
+#define ID 17
+
+// Global Structs
+
+typedef struct ping ping_t;
+
+void send_ping();
+
+void set_state(int s);
 
 //init function
 int wifi_init(void);

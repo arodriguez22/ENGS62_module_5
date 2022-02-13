@@ -12,20 +12,21 @@
 
 static bool done = false;
 
-
-
-void getLine (char *str);
 void callback(u32 led_num){
 	led_toggle(led_num);
 	if (led_num == CONFIGURE){
+		set_state(CONFIGURE);
 		printf("[CONFIGURE]\n\r");
 	}
 
 	if (led_num == PING){
+		set_state(PING);
+		send_ping();
 		printf("[PING]\n\r");
 	}
 
 	if (led_num == UPDATE){
+		set_state(UPDATE);
 		printf("[UPDATE]\n\r");
 	}
 
@@ -61,22 +62,4 @@ int main()
 	gic_close();
 	cleanup_platform();
 	return 0;
-}
-
-void getLine(char * str){
-	char c;
-	int i = 0;
-
-	c = getchar();
-	printf("%c", c);
-	fflush(stdout);
-
-	while ( c != 13 ){
-		str[i] = c;
-		i++;
-		c = getchar();
-		printf("%c", c);
-		fflush(stdout);
-	}
-	str[i] = '\0';
 }
