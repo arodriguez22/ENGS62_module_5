@@ -15,15 +15,16 @@
 #define CONFIGURE 0
 #define PING 1
 #define UPDATE 2
-
-#define TYPE 1
+#define READ 4
 #define ID 17
 
 // Global Structs
 
 typedef struct ping ping_t;
-
+typedef struct update_request update_request_t;
 void send_ping();
+
+void send_update(int value);
 
 void set_state(int s);
 

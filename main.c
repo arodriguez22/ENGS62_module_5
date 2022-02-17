@@ -26,8 +26,11 @@ void callback(u32 led_num){
 	}
 
 	if (led_num == UPDATE){
-		set_state(UPDATE);
+		printf("button pressed\n\r");
+		set_state(READ);
 		printf("[UPDATE]\n\r");
+		//int value = getchar();
+		//send_update(value);
 	}
 
 	if (led_num == 3){
